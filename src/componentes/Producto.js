@@ -51,9 +51,9 @@ class Producto extends Component {
   }
 
   modalInsertarToggle = () => {
-    this.setState(prevState => ({ 
+    this.setState(prevState => ({
       modalInsertar: !prevState.modalInsertar,
-      form: { 
+      form: {
         idproducto: '',
         idcategoria: '',
         idproveedor: '',
@@ -62,7 +62,7 @@ class Producto extends Component {
         stock: '',
         descripcion: '',
         imagen: '',
-      }, // Limpia los campos al abrir el modal de inserción
+      },
     }));
   }
 
@@ -92,7 +92,8 @@ class Producto extends Component {
   }
 
   guardarEdicion = () => {
-    axios.put(apiUrl + this.state.productoSeleccionado.idproducto, this.state.form)
+    const { idproducto, ...restForm } = this.state.form;
+    axios.put(apiUrl + this.state.productoSeleccionado.idproducto, restForm)
       .then(response => {
         this.modalEditarToggle();
         this.fetchProductos();
@@ -105,14 +106,14 @@ class Producto extends Component {
   peticionEliminar = () => {
     axios.delete(apiUrl + this.state.productoSeleccionado.idproducto)
       .then(response => {
-        this.modalEliminarToggle();
         this.fetchProductos();
+        this.modalEliminarToggle();
       })
       .catch(error => {
         console.error(error.message);
       });
   }
-  
+
   peticionPost = () => {
     axios.post(apiUrl, this.state.form)
       .then(response => {
@@ -128,18 +129,18 @@ class Producto extends Component {
     const { productos, form, productoSeleccionado } = this.state;
 
     return (
-      <div>
+      <div className="container mt-4">
         <h4>Gestión de Productos</h4>
-        <button className="btn btn-success" onClick={() => this.modalInsertarToggle()}>
+        <button className="btn btn-success mb-3" onClick={() => this.modalInsertarToggle()}>
           Agregar Producto
         </button>
 
-        <table className="table mt-3">
-          <thead>
+        <table className="table">
+          <thead className="thead-dark">
             <tr>
               <th>ID</th>
-              <th>ID Categoría</th>
-              <th>ID Proveedor</th>
+              <th>Categoría</th>
+              <th>Proveedor</th>
               <th>Nombre</th>
               <th>Precio</th>
               <th>Stock</th>
@@ -152,18 +153,24 @@ class Producto extends Component {
             {productos.map(producto => (
               <tr key={producto.idproducto}>
                 <td>{producto.idproducto}</td>
-                <td>{producto.idcategoria}</td>
-                <td>{producto.idproveedor}</td>
+                <td>{producto.categoria ? producto.categoria.nombrecategoria : ''}</td>
+                <td>{producto.proveedor ? producto.proveedor.nombre_proveedor : ''}</td>
                 <td>{producto.nombre_producto}</td>
                 <td>{producto.precio}</td>
                 <td>{producto.stock}</td>
                 <td>{producto.descripcion}</td>
-                <td>{producto.imagen}</td>
+                <td>
+                  <img
+                    src={producto.imagen}
+                    alt="Imagen del producto"
+                    className="img-thumbnail"
+                    style={{ width: '100px', height: '100px' }}
+                  />
+                </td>
                 <td>
                   <button className="btn btn-primary" onClick={() => this.seleccionarProductoParaEditar(producto)}>
                     <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  {" "}
+                  </button>{" "}
                   <button className="btn btn-danger" onClick={() => { this.setState({ productoSeleccionado: producto }); this.modalEliminarToggle(); }}>
                     <FontAwesomeIcon icon={faTrashAlt} />
                   </button>
@@ -205,7 +212,7 @@ class Producto extends Component {
             </div>
           </ModalBody>
           <ModalFooter>
-            <button className="btn btn-danger" onClick={() => this.peticionEliminar()}>Sí</button>
+            <button className="btn btn-success" onClick={() => this.guardarEdicion()}>Guardar</button>
             <button className="btn btn-danger" onClick={() => this.modalEditarToggle()}>Cancelar</button>
           </ModalFooter>
         </Modal>
@@ -242,7 +249,7 @@ class Producto extends Component {
             </div>
           </ModalBody>
           <ModalFooter>
-            <button className="btn btn-success" onClick={this.peticionPost}>
+            <button className="btn btn-success" onClick={() => this.peticionPost()}>
               Insertar
             </button>
             <button className="btn btn-danger" onClick={() => this.modalInsertarToggle()}>Cancelar</button>

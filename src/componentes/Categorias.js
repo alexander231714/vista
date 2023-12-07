@@ -46,7 +46,7 @@ class Categorias extends Component {
   modalInsertarToggle = () => {
     this.setState(prevState => ({ 
       modalInsertar: !prevState.modalInsertar,
-      form: { idcategoria: '', nombrecategoria: '' }, // Limpia los campos al abrir el modal de inserción
+      form: { idcategoria: '', nombrecategoria: '' },
     }));
   }
 
@@ -72,8 +72,17 @@ class Categorias extends Component {
   guardarEdicion = () => {
     axios.put(apiUrl + this.state.categoriaSeleccionada.idcategoria, this.state.form)
       .then(response => {
-        this.modalEditarToggle();
-        this.fetchCategorias();
+        const categoriasActualizadas = this.state.categorias.map(categoria => {
+          if (categoria.idcategoria === this.state.categoriaSeleccionada.idcategoria) {
+            return response.data;
+          }
+          return categoria;
+        });
+
+        this.setState({
+          categorias: categoriasActualizadas,
+          modalEditar: false,
+        });
       })
       .catch(error => {
         console.error(error.message);
@@ -85,8 +94,13 @@ class Categorias extends Component {
 
     axios.delete(apiUrl + idCategoria)
       .then(response => {
-        this.modalEliminarToggle();
-        this.fetchCategorias();
+        const categoriasActualizadas = this.state.categorias.filter(categoria => categoria.idcategoria !== idCategoria);
+
+        this.setState({
+          categorias: categoriasActualizadas,
+          modalEliminar: false,
+          categoriaSeleccionada: null, // Limpiar la categoría seleccionada después de eliminar
+        });
       })
       .catch(error => {
         console.error(error.message);
@@ -108,39 +122,37 @@ class Categorias extends Component {
     const { categorias, form, categoriaSeleccionada } = this.state;
 
     return (
-      <div>
-        <h4>Gestión de Categorías</h4>
-        <button className="btn btn-success" onClick={() => this.modalInsertarToggle()}>
-          Agregar Categoría
-        </button>
+      <div className="container mt-4">
+      <h4>Gestión de Categorías</h4>
+      <button className="btn btn-success mb-3" onClick={() => this.modalInsertarToggle()}>
+        Agregar Categoría
+      </button>
 
-        <table className="table mt-3">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Nombre de la Categoría</th>
-              <th>Acciones</th>
+      <table className="table">
+        <thead className="thead-dark">
+          <tr>
+            <th>ID</th>
+            <th>Nombre de la Categoría</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {categorias.map(categoria => (
+            <tr key={categoria.idcategoria}>
+              <td>{categoria.idcategoria}</td>
+              <td>{categoria.nombrecategoria}</td>
+              <td>
+                <button className="btn btn-primary" onClick={() => this.seleccionarCategoriaParaEditar(categoria)}>
+                  <FontAwesomeIcon icon={faEdit} />
+                </button>{" "}
+                <button className="btn btn-danger" onClick={() => { this.setState({ categoriaSeleccionada: categoria }); this.modalEliminarToggle(); }}>
+                  <FontAwesomeIcon icon={faTrashAlt} />
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {categorias.map(categoria => (
-              <tr key={categoria.idcategoria}>
-                <td>{categoria.idcategoria}</td>
-                <td>{categoria.nombrecategoria}</td>
-                <td>
-                  <button className="btn btn-primary" onClick={() => this.seleccionarCategoriaParaEditar(categoria)}>
-                    <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  {" "}
-                  <button className="btn btn-danger" onClick={() => { this.setState({ categoriaSeleccionada: categoria }); this.modalEliminarToggle(); }}>
-                    <FontAwesomeIcon icon={faTrashAlt} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
+          ))}
+        </tbody>
+      </table>
         <Modal isOpen={this.state.modalEditar}>
           <ModalHeader>
             Editar Categoría
@@ -155,7 +167,7 @@ class Categorias extends Component {
             </div>
           </ModalBody>
           <ModalFooter>
-            <button className="btn btn-danger" onClick={() => this.peticionEliminar()}>Sí</button>
+            <button className="btn btn-success" onClick={() => this.guardarEdicion()}>Guardar</button>
             <button className="btn btn-danger" onClick={() => this.modalEditarToggle()}>Cancelar</button>
           </ModalFooter>
         </Modal>
@@ -174,7 +186,7 @@ class Categorias extends Component {
             </div>
           </ModalBody>
           <ModalFooter>
-            <button className="btn btn-success" onClick={this.peticionPost}>
+            <button className="btn btn-success" onClick={() => this.peticionPost()}>
               Insertar
             </button>
             <button className="btn btn-danger" onClick={() => this.modalInsertarToggle()}>Cancelar</button>

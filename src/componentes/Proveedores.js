@@ -47,7 +47,7 @@ class Proveedores extends Component {
   }
 
   modalInsertarToggle = () => {
-    this.setState(prevState => ({ 
+    this.setState(prevState => ({
       modalInsertar: !prevState.modalInsertar,
       form: { idproveedor: '', nombre_proveedor: '', telefono: '', direccion: '' },
     }));
@@ -111,14 +111,15 @@ class Proveedores extends Component {
     const { proveedores, form, proveedorSeleccionado } = this.state;
 
     return (
-      <div>
+
+      <div className="container mt-4">
         <h4>Gestión de Proveedores</h4>
-        <button className="btn btn-success" onClick={() => this.modalInsertarToggle()}>
+        <button className="btn btn-success mb-3" onClick={() => this.modalInsertarToggle()}>
           Agregar Proveedor
         </button>
 
-        <table className="table mt-3">
-          <thead>
+        <table className="table">
+          <thead className="thead-dark">
             <tr>
               <th>ID</th>
               <th>Nombre del Proveedor</th>
@@ -137,8 +138,7 @@ class Proveedores extends Component {
                 <td>
                   <button className="btn btn-primary" onClick={() => this.seleccionarProveedorParaEditar(proveedor)}>
                     <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  {" "}
+                  </button>{" "}
                   <button className="btn btn-danger" onClick={() => { this.setState({ proveedorSeleccionado: proveedor }); this.modalEliminarToggle(); }}>
                     <FontAwesomeIcon icon={faTrashAlt} />
                   </button>
