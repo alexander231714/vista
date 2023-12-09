@@ -26,6 +26,9 @@ class Producto extends Component {
       descripcion: '',
       imagen: '',
     },
+    filtroNombreProducto: '',
+    filtroNombreCategoria: '',
+    filtroNombreProveedor: '',
   };
 
   componentDidMount() {
@@ -150,9 +153,23 @@ class Producto extends Component {
       });
   }
 
-  render() {
+  clearFilters() {
+    this.setState({
+      filtroNombreProducto: '',
+      filtroNombreCategoria: '',
+      filtroNombreProveedor: '',
+    });
+  }
 
-    const { productos, form, productoSeleccionado, categorias, proveedores } = this.state;
+  render() {
+    const { productos, form, productoSeleccionado, categorias, proveedores, filtroNombreProducto, filtroNombreCategoria, filtroNombreProveedor } = this.state;
+
+    const productosFiltrados = productos.filter((producto) =>
+      producto.nombre_producto.toLowerCase().includes(filtroNombreProducto.toLowerCase()) &&
+      (filtroNombreCategoria === '' || producto.categoria.nombrecategoria.toLowerCase().includes(filtroNombreCategoria.toLowerCase())) &&
+      (filtroNombreProveedor === '' || producto.proveedor.nombre_proveedor.toLowerCase().includes(filtroNombreProveedor.toLowerCase()))
+    );
+
     return (
       <div className="container mt-4">
         <h4>Gestión de Productos</h4>
@@ -160,7 +177,45 @@ class Producto extends Component {
           Agregar Producto
         </button>
 
-        <table className="table">
+        <div className="row mb-3">
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Filtrar por nombre del producto"
+              value={filtroNombreProducto}
+              onChange={(e) => this.setState({ filtroNombreProducto: e.target.value })}
+            />
+          </div>
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Filtrar por nombre de la categoría"
+              value={filtroNombreCategoria}
+              onChange={(e) => this.setState({ filtroNombreCategoria: e.target.value })}
+            />
+          </div>
+          <div className="col-md-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Filtrar por nombre del proveedor"
+              value={filtroNombreProveedor}
+              onChange={(e) => this.setState({ filtroNombreProveedor: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="row mb-3">
+          <div className="col-md-12">
+            <button className="btn btn-secondary mr-2" onClick={() => this.clearFilters()}>
+              Limpiar Filtros
+            </button>
+          </div>
+        </div>
+
+        <table className="table table-bordered">
           <thead className="thead-dark">
             <tr>
               <th>ID</th>
@@ -175,7 +230,7 @@ class Producto extends Component {
             </tr>
           </thead>
           <tbody>
-            {productos.map(producto => (
+            {productosFiltrados.map(producto => (
               <tr key={producto.idproducto}>
                 <td>{producto.idproducto}</td>
                 <td>{producto.categoria ? producto.categoria.nombrecategoria : ''}</td>
@@ -189,15 +244,15 @@ class Producto extends Component {
                     src={producto.imagen}
                     alt="Imagen del producto"
                     className="img-thumbnail"
-                    style={{ width: '100px', height: '100px' }}
+                    style={{ maxWidth: '100px', maxHeight: '100px' }}
                   />
                 </td>
                 <td>
                   <button className="btn btn-primary" onClick={() => this.seleccionarProductoParaEditar(producto)}>
-                    <FontAwesomeIcon icon={faEdit} />
+                    <FontAwesomeIcon icon={faEdit} /> Editar
                   </button>{" "}
                   <button className="btn btn-danger" onClick={() => { this.setState({ productoSeleccionado: producto }); this.modalEliminarToggle(); }}>
-                    <FontAwesomeIcon icon={faTrashAlt} />
+                    <FontAwesomeIcon icon={faTrashAlt} /> Eliminar
                   </button>
                 </td>
               </tr>
