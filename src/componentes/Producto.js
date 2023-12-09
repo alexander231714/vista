@@ -10,6 +10,8 @@ const apiUrl = "http://127.0.0.1:8000/api/productos/";
 class Producto extends Component {
   state = {
     productos: [],
+    categorias: [],
+    proveedores: [],
     modalInsertar: false,
     modalEditar: false,
     modalEliminar: false,
@@ -28,12 +30,34 @@ class Producto extends Component {
 
   componentDidMount() {
     this.fetchProductos();
+    this.fetchCategorias();
+    this.fetchProveedores();
   }
 
   fetchProductos = () => {
     axios.get(apiUrl)
       .then(response => {
         this.setState({ productos: response.data });
+      })
+      .catch(error => {
+        console.error(error.message);
+      });
+  }
+
+  fetchCategorias = () => {
+    axios.get("http://127.0.0.1:8000/api/categorias")
+      .then(response => {
+        this.setState({ categorias: response.data });
+      })
+      .catch(error => {
+        console.error(error.message);
+      });
+  }
+
+  fetchProveedores = () => {
+    axios.get("http://127.0.0.1:8000/api/proveedores")
+      .then(response => {
+        this.setState({ proveedores: response.data });
       })
       .catch(error => {
         console.error(error.message);
@@ -92,8 +116,8 @@ class Producto extends Component {
   }
 
   guardarEdicion = () => {
-    const { idproducto, ...restForm } = this.state.form;
-    axios.put(apiUrl + this.state.productoSeleccionado.idproducto, restForm)
+    const { idproducto, idcategoria, idproveedor, ...restForm } = this.state.form;
+    axios.put(apiUrl + this.state.productoSeleccionado.idproducto, { ...restForm, idcategoria: idcategoria || null, idproveedor: idproveedor || null })
       .then(response => {
         this.modalEditarToggle();
         this.fetchProductos();
@@ -115,7 +139,8 @@ class Producto extends Component {
   }
 
   peticionPost = () => {
-    axios.post(apiUrl, this.state.form)
+    const { idcategoria, idproveedor, ...restForm } = this.state.form;
+    axios.post(apiUrl, { ...restForm, idcategoria: idcategoria || null, idproveedor: idproveedor || null })
       .then(response => {
         this.modalInsertarToggle();
         this.fetchProductos();
@@ -126,8 +151,8 @@ class Producto extends Component {
   }
 
   render() {
-    const { productos, form, productoSeleccionado } = this.state;
 
+    const { productos, form, productoSeleccionado, categorias, proveedores } = this.state;
     return (
       <div className="container mt-4">
         <h4>Gestión de Productos</h4>
@@ -142,7 +167,7 @@ class Producto extends Component {
               <th>Categoría</th>
               <th>Proveedor</th>
               <th>Nombre</th>
-              <th>Precio</th>
+              <th>Precio $(USD)</th>
               <th>Stock</th>
               <th>Descripción</th>
               <th>Imagen</th>
@@ -189,20 +214,34 @@ class Producto extends Component {
               <label>ID:</label>
               <input className="form-control" type="text" name="idproducto" readOnly value={productoSeleccionado ? productoSeleccionado.idproducto : ''} />
               <br />
-              <label>ID Categoría:</label>
-              <input className="form-control" type="text" name="idcategoria" onChange={this.handleInputChange} value={form.idcategoria} />
+              <label>Categoría:</label>
+              <select className="form-control" name="idcategoria" onChange={this.handleInputChange} value={form.idcategoria || ''}>
+                <option value="">Seleccionar categoría</option>
+                {categorias.map(categoria => (
+                  <option key={categoria.idcategoria} value={categoria.idcategoria}>
+                    {categoria.nombrecategoria}
+                  </option>
+                ))}
+              </select>
               <br />
-              <label>ID Proveedor:</label>
-              <input className="form-control" type="text" name="idproveedor" onChange={this.handleInputChange} value={form.idproveedor} />
+              <label>Proveedor:</label>
+              <select className="form-control" name="idproveedor" onChange={this.handleInputChange} value={form.idproveedor || ''}>
+                <option value="">Seleccionar proveedor</option>
+                {proveedores.map(proveedor => (
+                  <option key={proveedor.idproveedor} value={proveedor.idproveedor}>
+                    {proveedor.nombre_proveedor}
+                  </option>
+                ))}
+              </select>
               <br />
               <label>Nombre del Producto:</label>
               <input className="form-control" type="text" name="nombre_producto" onChange={this.handleInputChange} value={form.nombre_producto} />
               <br />
               <label>Precio:</label>
-              <input className="form-control" type="text" name="precio" onChange={this.handleInputChange} value={form.precio} />
+              <input className="form-control" type="number" min="0.00" step="0.01" name="precio" onChange={this.handleInputChange} value={form.precio} />
               <br />
               <label>Stock:</label>
-              <input className="form-control" type="text" name="stock" onChange={this.handleInputChange} value={form.stock} />
+              <input className="form-control" type="number" min="0.00" name="stock" onChange={this.handleInputChange} value={form.stock} />
               <br />
               <label>Descripción:</label>
               <input className="form-control" type="text" name="descripcion" onChange={this.handleInputChange} value={form.descripcion} />
@@ -223,23 +262,44 @@ class Producto extends Component {
           </ModalHeader>
           <ModalBody>
             <div className="form-group">
-              <label>ID:</label>
-              <input className="form-control" type="text" name="idproducto" readOnly onChange={this.handleInputChange} value={form ? form.idproducto : ''} />
+              <input
+                className="form-control"
+                type="text"
+                name="idproducto"
+                readOnly
+                onChange={this.handleInputChange}
+                value={form ? form.idproducto : ''}
+                style={{ display: 'none' }}
+              />
               <br />
-              <label>ID Categoría:</label>
-              <input className="form-control" type="text" name="idcategoria" onChange={this.handleInputChange} value={form.idcategoria} />
+              <label>Categoría:</label>
+              <select className="form-control" name="idcategoria" onChange={this.handleInputChange} value={form.idcategoria || ''}>
+                <option value="">Seleccionar categoría</option>
+                {categorias.map(categoria => (
+                  <option key={categoria.idcategoria} value={categoria.idcategoria}>
+                    {categoria.nombrecategoria}
+                  </option>
+                ))}
+              </select>
               <br />
-              <label>ID Proveedor:</label>
-              <input className="form-control" type="text" name="idproveedor" onChange={this.handleInputChange} value={form.idproveedor} />
+              <label>Proveedor:</label>
+              <select className="form-control" name="idproveedor" onChange={this.handleInputChange} value={form.idproveedor || ''}>
+                <option value="">Seleccionar proveedor</option>
+                {proveedores.map(proveedor => (
+                  <option key={proveedor.idproveedor} value={proveedor.idproveedor}>
+                    {proveedor.nombre_proveedor}
+                  </option>
+                ))}
+              </select>
               <br />
               <label>Nombre del Producto:</label>
               <input className="form-control" type="text" name="nombre_producto" onChange={this.handleInputChange} value={form.nombre_producto} />
               <br />
               <label>Precio:</label>
-              <input className="form-control" type="text" name="precio" onChange={this.handleInputChange} value={form.precio} />
+              <input className="form-control" type="number" min="0.00" step="0.01" name="precio" onChange={this.handleInputChange} value={form.precio} />
               <br />
               <label>Stock:</label>
-              <input className="form-control" type="text" name="stock" onChange={this.handleInputChange} value={form.stock} />
+              <input className="form-control" type="number" min="0" name="stock" onChange={this.handleInputChange} value={form.stock} />
               <br />
               <label>Descripción:</label>
               <input className="form-control" type="text" name="descripcion" onChange={this.handleInputChange} value={form.descripcion} />
