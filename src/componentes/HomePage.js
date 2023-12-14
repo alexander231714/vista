@@ -7,6 +7,7 @@ const HomePage = () => {
     const [productos, setProductos] = useState([]);
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [filtroGlobal, setFiltroGlobal] = useState('');
 
     useEffect(() => {
         fetchProductos();
@@ -31,11 +32,33 @@ const HomePage = () => {
         setSelectedProduct(null);
     };
 
+    const handleFiltroGlobalChange = (e) => {
+        setFiltroGlobal(e.target.value);
+    };
+
+    const productosFiltrados = productos.filter((producto) =>
+        producto.nombre_producto.toLowerCase().includes(filtroGlobal.toLowerCase()) ||
+        (producto.categoria.nombrecategoria.toLowerCase().includes(filtroGlobal.toLowerCase())) ||
+        (producto.proveedor.nombre_proveedor.toLowerCase().includes(filtroGlobal.toLowerCase()))
+    );
+
     return (
         <div className="container">
             <h1>Lista de Productos</h1>
+
+            {/* Filtro Global */}
+            <div className="mb-3">
+                <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Buscar por nombre, categoría o proveedor"
+                    value={filtroGlobal}
+                    onChange={handleFiltroGlobalChange}
+                />
+            </div>
+
             <div className="row">
-                {productos.map((producto) => (
+                {productosFiltrados.map((producto) => (
                     <div key={producto.idproducto} className="col-md-4">
                         <div className="card mb-4" onClick={() => handleProductClick(producto)}>
                             <img
@@ -95,4 +118,5 @@ const HomePage = () => {
         </div>
     );
 };
+
 export default HomePage;
