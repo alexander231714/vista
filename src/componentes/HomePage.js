@@ -8,19 +8,30 @@ const HomePage = () => {
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [filtroGlobal, setFiltroGlobal] = useState('');
+    const [precioMin, setPrecioMin] = useState('');
+    const [precioMax, setPrecioMax] = useState('');
 
     useEffect(() => {
-        fetchProductos();
-    }, []);
+        const fetchProductos = async () => {
+            try {
+                const response = await axios.get('http://127.0.0.1:8000/api/productos', {
+                    params: {
+                        filtroNombreProducto: filtroGlobal,
+                        filtroNombreCategoria: filtroGlobal,
+                        filtroNombreProveedor: filtroGlobal,
+                        precioMin: precioMin,
+                        precioMax: precioMax,
+                    },
+                });
+                setProductos(response.data);
+            } catch (error) {
+                console.error(error.message);
+            }
+        };
 
-    const fetchProductos = async () => {
-        try {
-            const response = await axios.get('http://127.0.0.1:8000/api/productos');
-            setProductos(response.data);
-        } catch (error) {
-            console.error(error.message);
-        }
-    };
+        fetchProductos();  
+
+    }, [filtroGlobal, precioMin, precioMax]);
 
     const handleProductClick = (producto) => {
         setSelectedProduct(producto);
@@ -36,17 +47,28 @@ const HomePage = () => {
         setFiltroGlobal(e.target.value);
     };
 
+    const handlePrecioMinChange = (e) => {
+        setPrecioMin(e.target.value);
+    };
+
+    const handlePrecioMaxChange = (e) => {
+        setPrecioMax(e.target.value);
+    };
+
     const productosFiltrados = productos.filter((producto) =>
         producto.nombre_producto.toLowerCase().includes(filtroGlobal.toLowerCase()) ||
-        (producto.categoria.nombrecategoria.toLowerCase().includes(filtroGlobal.toLowerCase())) ||
-        (producto.proveedor.nombre_proveedor.toLowerCase().includes(filtroGlobal.toLowerCase()))
+        producto.categoria.nombrecategoria.toLowerCase().includes(filtroGlobal.toLowerCase()) ||
+        producto.proveedor.nombre_proveedor.toLowerCase().includes(filtroGlobal.toLowerCase())
+    ).filter((producto) =>
+        (precioMin === '' || parseFloat(producto.precio) >= parseFloat(precioMin)) &&
+        (precioMax === '' || parseFloat(producto.precio) <= parseFloat(precioMax))
     );
 
     return (
         <div className="container">
             <h1>Lista de Productos</h1>
 
-            {/* Filtro Global */}
+            {/* Filtros Globales */}
             <div className="mb-3">
                 <input
                     type="text"
@@ -55,6 +77,33 @@ const HomePage = () => {
                     value={filtroGlobal}
                     onChange={handleFiltroGlobalChange}
                 />
+            </div>
+
+            {/* Filtro de Rango de Precio */}
+            <div className="mb-3">
+                <label>Rango de Precio:</label>
+                <div className="row">
+                    <div className="col-md-6">
+                        <input
+                            type="number"
+                            className="form-control"
+                            placeholder="Precio mínimo"
+                            min="0.00" step="0.01"
+                            value={precioMin}
+                            onChange={handlePrecioMinChange}
+                        />
+                    </div>
+                    <div className="col-md-6">
+                        <input
+                            type="number"
+                            className="form-control"
+                            placeholder="Precio máximo"
+                            min="0.00" step="0.01"
+                            value={precioMax}
+                            onChange={handlePrecioMaxChange}
+                        />
+                    </div>
+                </div>
             </div>
 
             <div className="row">
